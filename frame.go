@@ -146,15 +146,21 @@ func (wc *WebContainer) buildRouter() error {
 // Return http handler from webpager, based in the webcontainer
 func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if e := recover(); e != nil {
-				ErrorHTML(e, w)
-			}
-		}()
+		/*
+			defer func() {
+				if e := recover(); e != nil {
+					ErrorHTML(e, w)
+				}
+			}()
+		*/
 		// get vars from request
 		res := wp.Respond(mux.Vars(r), r)
+		if res == nil {
+			panic("Nil response")
+		}
 		// merge global resources into key
 		res.MergeResource(wc.GlobalKey, wc.Global)
-		wc.Write(w, res, wp.Type(), wp.Template())
+		//
+		wc.Write(w, res, res.Type, wp.Template())
 	}
 }

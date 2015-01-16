@@ -28,6 +28,11 @@ func NewResource() *Resource {
 
 // Merge 2 resources
 func (res *Resource) Merge(dataKey string, r *Resource) {
+	defer func() {
+		if e := recover(); e != nil {
+			return
+		}
+	}()
 	// mix all links
 	if r.Links != nil && len(r.Links) > 0 {
 		for k, v := range r.Links {

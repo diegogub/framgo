@@ -5,8 +5,13 @@ import (
 	"net/http"
 )
 
+const HTML_TYPE = "html"
+const PLAIN_TYPE = "plain"
+
 // Every pager shoul
 type HttpResponse struct {
+	//Type : html or plain. Html use WebPager template and resource Data, while Plain just the Plain resource
+	Type string
 	//Code
 	Code int
 	// Error?
@@ -22,8 +27,16 @@ type HttpResponse struct {
 }
 
 // Generic http response
-func NewHttpResponse(code int, res *Resource) *HttpResponse {
+func NewHttpResponse(code int, res *Resource, resType string) *HttpResponse {
 	var hr HttpResponse
+	switch resType {
+	case "html", "plain":
+		hr.Type = resType
+	default:
+		// default plain response
+		hr.Type = PLAIN_TYPE
+	}
+
 	hr.Res = res
 	hr.Code = code
 	if code < 0 {
@@ -45,6 +58,20 @@ func (ht *HttpResponse) SetResource(r *Resource) error {
 	}
 	ht.Res = r
 	return nil
+}
+
+func (ht *HttpResponse) SetCookie(c *http.Cookie) {
+	if ht.Cookies == nil {
+		ht.Cookies = make([]*http.Cookie, 0)
+	}
+	ht.Cookies = append(ht.Cookies, c)
+}
+
+func (ht *HttpResponse) SetHeader(key, value string) {
+	if ht.Headers == nil {
+		ht.Headers = make(map[string]string)
+	}
+	ht.Headers[key] = value
 }
 
 func (ht *HttpResponse) MergeResource(datakey string, r *Resource) {
