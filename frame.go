@@ -25,7 +25,8 @@ type WebContainer struct {
 	// Logger interface
 	log RequestLogger
 	// main router
-	router  *mux.Router
+	router *mux.Router
+	// all loaded templates
 	tmpl    *template.Template
 	Verbose bool
 }
@@ -131,12 +132,8 @@ func (wc *WebContainer) buildRouter() error {
 	}
 
 	for _, wp := range wc.Pages {
-		var auxr *mux.Route
-		for endpoint, filter := range wp.Endpoints() {
-			auxr = wc.router.HandleFunc(endpoint, buildHandler(wp, wc))
-			if filter != nil {
-				filter(auxr)
-			}
+		for _, endpoint := range wp.Endpoints() {
+			wc.router.HandleFunc(endpoint, buildHandler(wp, wc))
 		}
 	}
 
@@ -146,13 +143,11 @@ func (wc *WebContainer) buildRouter() error {
 // Return http handler from webpager, based in the webcontainer
 func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		/*
-			defer func() {
-				if e := recover(); e != nil {
-					ErrorHTML(e, w)
-				}
-			}()
-		*/
+		defer func() {
+			if e := recover(); e != nil {
+				ErrorHTML(e, w)
+			}
+		}()
 		// get vars from request
 		res := wp.Respond(mux.Vars(r), r)
 		if res == nil {
@@ -160,7 +155,11 @@ func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http
 		}
 		// merge global resources into key
 		res.MergeResource(wc.GlobalKey, wc.Global)
-		//
-		wc.Write(w, res, res.Type, wp.Template())
+		// write response to wire
+		if res.Url != "" {
+			http.Redirect(w, r, res.Url, res.Code)
+		} else {
+			wc.Write(w, res, res.Type, res.Template)
+		}
 	}
 }

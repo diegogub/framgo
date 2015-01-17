@@ -12,6 +12,8 @@ const PLAIN_TYPE = "plain"
 type HttpResponse struct {
 	//Type : html or plain. Html use WebPager template and resource Data, while Plain just the Plain resource
 	Type string
+	// Template name
+	Template string
 	//Code
 	Code int
 	// Error?
@@ -27,7 +29,7 @@ type HttpResponse struct {
 }
 
 // Generic http response
-func NewHttpResponse(code int, res *Resource, resType string) *HttpResponse {
+func NewHttpResponse(code int, res *Resource, template string, resType string) *HttpResponse {
 	var hr HttpResponse
 	switch resType {
 	case "html", "plain":
@@ -37,6 +39,7 @@ func NewHttpResponse(code int, res *Resource, resType string) *HttpResponse {
 		hr.Type = PLAIN_TYPE
 	}
 
+	hr.Template = template
 	hr.Res = res
 	hr.Code = code
 	if code < 0 {
