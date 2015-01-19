@@ -8,51 +8,57 @@ issue!
 Example App:
 -----------
 ~~~
+package main
+
 import (
-  "fmt"
-  "github.com/diegogub/framgo"
-  "github.com/gorilla/mux"
-  "net/http"
+	"fmt"
+	"github.com/diegogub/framgo"
+	"net/http"
 )
 
 type TestPage struct {
+	framgo.Mapper
 }
 
-func (t TestPage) Type()Type string {
-  return "plain"
+func NewTest() *TestPage {
+	var t TestPage
+	t.Register("GET", t.Get)
+	t.Register("POST", t.Post)
+	return &t
 }
 
-func (t TestPage) Endpoints() framgo.Routes {
-  filter := func(r *mux.Route) {
-  r.Methods("GET", "POST")
-  }
-  Routeses := framgo.NewRoutes()
-  routes.AddRoute("/test", filter)
-  routes.AddRoute("/test/{data}", filter)
-  return routes
+func (t *TestPage) Endpoints() []string {
+	return []string{"/test"}
 }
 
-func (t TestPage) Template() string {
-  return "test"
+func (t *TestPage) Type() string {
+	return "plain"
 }
 
-func (t TestPage) Respond(vars map[stringng]string, r *http.Request) *framgo.HttpResponse {
-  res := framgo.NewResource()
-  res.JSON([]string{"test"})
-  rhttp := framgo.NewHttpResponse(201, res)
-  return rhttp
+func (t *TestPage) Get(vars map[string]string, r *http.Request) *framgo.HttpResponse {
+	re := framgo.Redirect("http://google.com", 302)
+	return re
+}
+
+func (t *TestPage) Post(vars map[string]string, r *http.Request) *framgo.HttpResponse {
+	res := framgo.NewResource()
+	res.Plain = []byte("post action")
+	re := framgo.NewHttpResponse(200, res, "", "plain")
+	return re
+}
+
+func (t *TestPage) Template() string {
+	return "test"
 }
 
 func main() {
-    fmt.Println("Starting web..")
-    wc := framgo.New()
-    wc.Verbose = true
-    wc.LoadTemplates(".", ".html")
-     var t TestPage
+	fmt.Println("Starting web..")
+	wc := framgo.New()
+	wc.Verbose = true
+	wc.LoadTemplates(".", ".html")
 
-    // load test page
-    wc.AddPage(t)
-    // Start web
-    wc.Start("8080")
+	t := NewTest()
+	wc.AddPage(t)
+	wc.Start("4545")
 }
 ~~~
