@@ -109,7 +109,7 @@ func (wc *WebContainer) Write(w http.ResponseWriter, httr *HttpResponse, kind st
 		if template == "" {
 			panic("Empty template")
 		}
-
+		httr.SetHeader("Content-Type", "text/html")
 		if httr.Res != nil {
 			err := wc.tmpl.ExecuteTemplate(w, template, httr.Res.Data)
 			if err != nil {
@@ -118,6 +118,7 @@ func (wc *WebContainer) Write(w http.ResponseWriter, httr *HttpResponse, kind st
 		}
 
 	case "plain":
+		httr.SetHeader("Content-Type", httr.Res.Content)
 		if httr.Res != nil && len(httr.Res.Plain) > 0 {
 			w.Write(httr.Res.Plain)
 		} else {

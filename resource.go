@@ -13,6 +13,8 @@ type Resource struct {
 	Data map[string]interface{}
 	// Plain text
 	Plain []byte
+	// Content Type
+	Content string
 }
 
 // Creates new resource
@@ -23,6 +25,7 @@ func NewResource() *Resource {
 	// map of links
 	res.Links = make(map[string][]string)
 	res.Data = make(map[string]interface{})
+	res.Content = "text/plain"
 	return &res
 }
 
@@ -83,5 +86,6 @@ func (res *Resource) JSON(i interface{}) error {
 		return err
 	}
 	res.Plain = b
+	res.Content = "application/json"
 	return nil
 }

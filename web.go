@@ -8,6 +8,6 @@ import (
 type WebPager interface {
 	// Endpoints to listen, filter function
 	Endpoints() []string
-	// Handler*
+	// Http handler
 	Respond(vars map[string]string, r *http.Request) *HttpResponse
 }
