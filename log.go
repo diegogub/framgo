@@ -10,7 +10,6 @@ type RequestLogger interface {
 	Log(rtime time.Duration, r *http.Request, res *HttpResponse)
 }
 
-//TODO
 // Basic logger to file and stdout
 type BasicLogger struct {
 	onlyRequest bool

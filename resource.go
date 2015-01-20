@@ -22,7 +22,6 @@ func NewResource() *Resource {
 	var res Resource
 	// 0 bytes
 	res.Plain = make([]byte, 0)
-	// map of links
 	res.Links = make(map[string][]string)
 	res.Data = make(map[string]interface{})
 	res.Content = "text/plain"

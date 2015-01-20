@@ -22,6 +22,8 @@ type WebContainer struct {
 	Global    *Resource
 	// Pages, could be json responses, html or just http
 	Pages []WebPager
+	// Sessioner // TODO
+	sess Sessioner
 	// Logger interface
 	log RequestLogger
 	// main router
@@ -159,8 +161,9 @@ func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http
 				ErrorHTML(e, w)
 			}
 		}()
+		r.ParseForm()
 		// get vars from request
-		res := wp.Respond(mux.Vars(r), r)
+		res := wp.Respond(mux.Vars(r), r.Form, r)
 		if res == nil {
 			panic("Nil response")
 		}
