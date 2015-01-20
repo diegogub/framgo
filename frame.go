@@ -41,6 +41,7 @@ func New() *WebContainer {
 	return &wc
 }
 
+// Load all templates
 func (wc *WebContainer) LoadTemplates(dir, suffix string) error {
 	if dir == "" || suffix == "" {
 		return errors.New("Invalid suffix or dir")
@@ -60,6 +61,15 @@ func (wc *WebContainer) LoadTemplates(dir, suffix string) error {
 	})
 	wc.tmpl = tmps
 	return nil
+}
+
+//Serve static files
+func (wc *WebContainer) StaticFiles(url, directory string) {
+	if directory == "" {
+		directory = "."
+	}
+
+	wc.router.PathPrefix("/" + url + "/").Handler(http.StripPrefix("/"+url+"/", http.FileServer(http.Dir(directory+"/"))))
 }
 
 func (wc *WebContainer) Start(port string) {
@@ -111,14 +121,14 @@ func (wc *WebContainer) Write(w http.ResponseWriter, httr *HttpResponse, kind st
 		}
 		httr.SetHeader("Content-Type", "text/html")
 		if httr.Res != nil {
-			err := wc.tmpl.ExecuteTemplate(w, template, httr.Res.Data)
+			err := wc.tmpl.ExecuteTemplate(w, template, httr.Res)
 			if err != nil {
 				panic(err)
 			}
 		}
 
 	case "plain":
-		httr.SetHeader("Content-Type", httr.Res.Content)
+		httr.SetHeader("Content-Type", "application/json")
 		if httr.Res != nil && len(httr.Res.Plain) > 0 {
 			w.Write(httr.Res.Plain)
 		} else {
@@ -155,7 +165,7 @@ func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http
 			panic("Nil response")
 		}
 		// merge global resources into key
-		res.MergeResource(wc.GlobalKey, wc.Global)
+		//res.MergeResource(wc.GlobalKey, wc.Global)
 		// write response to wire
 		if res.Url != "" {
 			http.Redirect(w, r, res.Url, res.Code)

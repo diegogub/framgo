@@ -85,7 +85,7 @@ func (res *Resource) JSON(i interface{}) error {
 	if err != nil {
 		return err
 	}
-	res.Plain = b
 	res.Content = "application/json"
+	res.Plain = b
 	return nil
 }
