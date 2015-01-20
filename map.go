@@ -2,18 +2,19 @@ package framgo
 
 import (
 	"net/http"
+	"net/url"
 	"sync"
 )
 
 // Helper to map request to sub function.
 type Mapper struct {
 	lock sync.RWMutex
-	Map  map[string]func(map[string]string, *http.Request) *HttpResponse
+	Map  map[string]func(map[string]string, url.Values, *http.Request) *HttpResponse
 }
 
 func NewMapper() *Mapper {
 	var m Mapper
-	m.Map = make(map[string]func(map[string]string, *http.Request) *HttpResponse)
+	m.Map = make(map[string]func(map[string]string, url.Values, *http.Request) *HttpResponse)
 	return &m
 }
 
@@ -27,7 +28,7 @@ func (m *Mapper) Register(method string, f func(map[string]string, *http.Request
 	m.Map[method] = f
 }
 
-func (m Mapper) Respond(vars map[string]string, r *http.Request) *HttpResponse {
+func (m Mapper) Respond(vars map[string]string, u url.Values, r *http.Request) *HttpResponse {
 	defer func() {
 		if e := recover(); e != nil {
 			return
