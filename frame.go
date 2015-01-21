@@ -101,17 +101,6 @@ func (wc *WebContainer) AddPage(wp WebPager) {
 
 // Write Response to the wire
 func (wc *WebContainer) Write(w http.ResponseWriter, httr *HttpResponse, kind string, template string) {
-	// set all cookies
-	for _, c := range httr.Cookies {
-		http.SetCookie(w, c)
-	}
-	// set all headers
-	for k, v := range httr.Headers {
-		if k != "" {
-			w.Header().Set(k, v)
-		}
-	}
-
 	if httr.Code > 0 {
 		w.WriteHeader(httr.Code)
 	}
@@ -167,8 +156,18 @@ func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http
 		if res == nil {
 			panic("Nil response")
 		}
-		// merge global resources into key
-		//res.MergeResource(wc.GlobalKey, wc.Global)
+
+		// set all cookies
+		for _, c := range res.Cookies {
+			http.SetCookie(w, c)
+		}
+
+		// set all headers
+		for k, v := range res.Headers {
+			if k != "" {
+				w.Header().Set(k, v)
+			}
+		}
 		// write response to wire
 		if res.Url != "" {
 			http.Redirect(w, r, res.Url, res.Code)
