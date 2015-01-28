@@ -30,6 +30,7 @@ type WebContainer struct {
 	router *mux.Router
 	// all loaded templates
 	tmpl    *template.Template
+	wg      sync.WaitGroup
 	Verbose bool
 }
 
@@ -134,8 +135,11 @@ func (wc *WebContainer) buildRouter() error {
 	}
 
 	for _, wp := range wc.Pages {
-		for _, endpoint := range wp.Endpoints() {
-			wc.router.HandleFunc(endpoint, buildHandler(wp, wc))
+		rm := wp.Endpoints()
+		for endpoint, funcs := range rm.M {
+			for _, f := range funcs {
+				wc.router.HandleFunc(endpoint, buildHandler(f, wc))
+			}
 		}
 	}
 
@@ -143,7 +147,7 @@ func (wc *WebContainer) buildRouter() error {
 }
 
 // Return http handler from webpager, based in the webcontainer
-func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http.Request) {
+func buildHandler(f func(rc *RequestContext, r *http.Request) *HttpResponse, wc *WebContainer) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if e := recover(); e != nil {
@@ -152,7 +156,8 @@ func buildHandler(wp WebPager, wc *WebContainer) func(http.ResponseWriter, *http
 		}()
 		r.ParseForm()
 		// get vars from request
-		res := wp.Respond(mux.Vars(r), r.Form, r)
+		rc := NewRequestContext(r)
+		res := f(rc, r)
 		if res == nil {
 			panic("Nil response")
 		}
