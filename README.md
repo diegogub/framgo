@@ -17,38 +17,41 @@ import (
 )
 
 type TestPage struct {
-	framgo.Mapper
 }
 
 func NewTest() *TestPage {
 	var t TestPage
-	t.Register("GET", t.Get)
-	t.Register("POST", t.Post)
 	return &t
 }
 
-func (t *TestPage) Endpoints() []string {
-	return []string{"/test"}
+func (t *TestPage) Endpoints() *framgo.RequestMap {
+	rm := framgo.NewRequestMap()
+	rm.Add("/test", t.Get)
+	rm.Add("/admin", t.Post)
+	return rm
 }
 
-func (t *TestPage) Type() string {
-	return "plain"
+func (t *TestPage) Get(rc *framgo.RequestContext, r *http.Request) *framgo.HttpResponse {
+  // we check if it's AJAX. We can define diffent response
+	if rc.AJAX {
+		res := framgo.NewResource()
+		res.JSON(map[string]interface{}{"type": "AJAX REQUEST"})
+		re := framgo.NewHttpResponse(201, res, "", "plain")
+		return re
+	} else {
+		res := framgo.NewResource()
+// we can define links into template
+		res.AddLink("CSS", "http:google.com/")
+		re := framgo.NewHttpResponse(200, res, "test", "html")
+		return re
+	}
 }
 
-func (t *TestPage) Get(vars map[string]string, r *http.Request) *framgo.HttpResponse {
-	re := framgo.Redirect("http://google.com", 302)
-	return re
-}
-
-func (t *TestPage) Post(vars map[string]string, r *http.Request) *framgo.HttpResponse {
+func (t *TestPage) Post(rc *framgo.RequestContext, r *http.Request) *framgo.HttpResponse {
 	res := framgo.NewResource()
-	res.Plain = []byte("post action")
-	re := framgo.NewHttpResponse(200, res, "", "plain")
+	res.Plain = []byte("hola me gusta Golang")
+	re := framgo.NewHttpResponse(201, res, "", "plain")
 	return re
-}
-
-func (t *TestPage) Template() string {
-	return "test"
 }
 
 func main() {
@@ -61,4 +64,30 @@ func main() {
 	wc.AddPage(t)
 	wc.Start("4545")
 }
+
+~~~
+test.html template
+~~~
+{{ define "test" }}
+<html>
+<head>
+  <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+</head>
+<p>test 2</p>
+<p id="ajax"></p>
+{{ range .Links.CSS}}
+<p>{{ . }}</p>
+{{ end }}
+
+<script>
+  $.ajax({
+    url: "/test",
+    success: function( data ) {
+      $( "#ajax" ).html( data );
+    }
+  });
+</script>
+</html>
+{{ end }}
+
 ~~~
