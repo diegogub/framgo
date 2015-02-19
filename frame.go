@@ -117,6 +117,11 @@ func (wc *WebContainer) Write(w http.ResponseWriter, httr *HttpResponse, kind st
 			if err != nil {
 				panic(err)
 			}
+		} else {
+			err := wc.tmpl.ExecuteTemplate(w, template, nil)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 	case "plain":
